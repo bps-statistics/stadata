@@ -1,0 +1,16 @@
+.DS_Store
+LICENCSE
+README.md
+pyproject.toml
+requirements.txt
+stadata/.DS_Store
+stadata/__init__.py
+stadata/main.py
+stadata.egg-info/PKG-INFO
+stadata.egg-info/SOURCES.txt
+stadata.egg-info/dependency_links.txt
+stadata.egg-info/requires.txt
+stadata.egg-info/top_level.txt
+stadata/data/.DS_Store
+stadata/data/allStaticTable.csv
+stadata/data/allVariable.csv
