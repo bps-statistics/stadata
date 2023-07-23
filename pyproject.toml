@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stadata"
-version = "0.0.1"
+version = "0.0.2"
 description = "API for get all statistics data from BPS"
 urls = {homepage = "https://github.com/bps-statistics/stadata"}
 requires-python = ">=3.7"
