@@ -3,6 +3,7 @@ import warnings
 import pandas as pd
 from tqdm import tqdm
 import html
+from .material import Material
 
 BASE_URL = "https://webapi.bps.go.id/v1/"
 
@@ -18,7 +19,7 @@ class Client(object):
         """
         self.TOKEN = token
     
-    def __get_list(self,lang = 'ind',domain='0000',model='statictable',keyword='',page=1,var='',turvar='',vervar='',th='',turth=''):
+    def __get_list(self,lang = 'ind',domain='0000',model='statictable',keyword='',page=1,var='',turvar='',vervar='',th='',turth='',month='',year=''):
         """
         Method to get list data based on model
         :param lang: Language to display data. Default value: ind. Allowed values: "ind", "eng"
@@ -31,6 +32,8 @@ class Client(object):
         :param vervar: Vertical Variable ID selected to display data
         :param th: Period data ID selected to display data
         :param turth: Derived Period Data ID selected to display data
+        :param month: Month of publication or press release in int
+        :param year: Year of publication or press release
         """
         if(model=='data'):
             if(th != ''):
@@ -38,6 +41,10 @@ class Client(object):
             else:
                 url_th = ''
             res = requests.get(f'{BASE_URL}api/list/model/'f'{model}/perpage/100000/lang/'f'{lang}/domain/'f'{domain}/key/'f'{self.TOKEN}/keyword/'f'{keyword}/page/'f'{str(page)}/var/'f'{str(var)}'f'{url_th}')
+        elif((model=='pressrelease')|(model=='publication')):
+            res = requests.get('https://webapi.bps.go.id/v1/api/list/model/'+model+'/perpage/100000/lang/'+lang+'/domain/'+domain+'/key/'+key+'/keyword/'+keyword+'/page/'+str(page)+
+                            (('/month/'+str(month)) if month != '' else '')+
+                            (('/year/'+str(year)) if year != '' else ''))
         else:
             res = requests.get(f'{BASE_URL}api/list/model/'f'{model}/perpage/100000/lang/'f'{lang}/domain/'f'{domain}/key/'f'{self.TOKEN}/keyword/'f'{keyword}/page/'f'{str(page)}')
         if(res.status_code!=200):
@@ -47,6 +54,8 @@ class Client(object):
             if(res['status']!='OK'):
                 raise Exception(res['message'])
             return res
+        
+        
 
     def __get_view(self,domain,model,lang,idx):
         """
@@ -118,6 +127,112 @@ class Client(object):
                 }
         return pd.DataFrame(df) 
     
+    def __get_pressRelease(self,domain="0000",year='',month='',keyword=''):
+        df = pd.DataFrame({
+            'brs_id':[],
+            'subj_id':[],
+            'subj':[],
+            'title':[],
+            'abstract':[],
+            'rl_date':[],
+            'updt_date':[],
+            'pdf':[],
+            'size':[],
+            'slide':[],
+            'thumbnail':[]
+        })
+        res = self.__get_list(domain=domain,model='pressrelease',keyword=keyword,year=year,month=month)
+        if(res['data']==''):
+            print(res)
+            return df
+        for item in res['data'][1]:
+            df = pd.concat([df, pd.DataFrame({
+                'brs_id':[item.get('brs_id')],
+                'subj_id':[item.get('subj_id')],
+                'subj':[item.get('subj')],
+                'title':[item.get('title')],
+                'abstract':[item.get('abstract')],
+                'rl_date':[item.get('rl_date')],
+                'updt_date':[item.get('updt_date')],
+                'pdf':[item.get('pdf')],
+                'size':[item.get('size')],
+                'slide':[item.get('slide')],
+                'thumbnail':[item.get('thumbnail')]
+            })], axis=0, ignore_index=True)
+        pages = res['data'][0]['pages']
+        if(res['data'][0]['total']<2):
+            print(res)
+        if(pages>1):
+            for i in tqdm(range(2,pages)):
+                res = self.__get_list(domain=domain,model='pressrelease',keyword=keyword,year=year,month=month,page=i)
+                if(res['data']==''):
+                    break
+                for item in res['data'][1]:
+                    df = pd.concat([df, pd.DataFrame({
+                        'brs_id':[item.get('brs_id')],
+                        'subj_id':[item.get('subj_id')],
+                        'subj':[item.get('subj')],
+                        'title':[item.get('title')],
+                        'abstract':[item.get('abstract')],
+                        'rl_date':[item.get('rl_date')],
+                        'updt_date':[item.get('updt_date')],
+                        'pdf':[item.get('pdf')],
+                        'size':[item.get('size')],
+                        'slide':[item.get('slide')],
+                        'thumbnail':[item.get('thumbnail')]
+                    })], axis=0, ignore_index=True)
+        return df
+    
+    def __get_publication(self,domain="0000",year='',month='',keyword=''):
+        df = pd.DataFrame({
+            'pub_id':[],
+            'title':[],
+            'abstract':[],
+            'issn':[],
+            'sch_date':[],
+            'rl_date':[],
+            'updt_date':[],
+            'cover':[],
+            'pdf':[],
+            'size':[]
+        })
+        res = self.__get_list(domain=domain,model='pressrelease',keyword=keyword,year=year,month=month)
+        if(res['data']==''):
+            return df
+        for item in res['data'][1]:
+            df = pd.concat([df, pd.DataFrame({
+                'pub_id':[item.get('pub_id')],
+                'title':[item.get('title')],
+                'abstract':[item.get('abstract')],
+                'issn':[item.get('issn')],
+                'sch_date':[item.get('sch_date')],
+                'rl_date':[item.get('rl_date')],
+                'updt_date':[item.get('updt_date')],
+                'cover':[item.get('cover')],
+                'pdf':[item.get('pdf')],
+                'size':[item.get('size')]
+            })], axis=0, ignore_index=True)
+        pages = res['data'][0]['pages']
+        if(pages>1):
+            for i in tqdm(range(2,pages)):
+                res = self.__get_list(domain=domain,model='pressrelease',keyword=keyword,year=year,month=month,page=i)
+                if(res['data']==''):
+                    break
+                for item in res['data'][1]:
+                    df = pd.concat([df, pd.DataFrame({
+                        'pub_id':[item.get('pub_id')],
+                        'title':[item.get('title')],
+                        'abstract':[item.get('abstract')],
+                        'issn':[item.get('issn')],
+                        'sch_date':[item.get('sch_date')],
+                        'rl_date':[item.get('rl_date')],
+                        'updt_date':[item.get('updt_date')],
+                        'cover':[item.get('cover')],
+                        'pdf':[item.get('pdf')],
+                        'size':[item.get('size')]
+                    })], axis=0, ignore_index=True)
+        return df
+    
     def __get_statictable(self,domain='0000',keyword=''):
         """
         Based Method to get all static table
@@ -164,49 +279,125 @@ class Client(object):
                     })], axis=0, ignore_index=True)
         return df
     
-    def list_statictable(self, all=False, domain=[]):
+    def list_statictable(self, all=False, domain=[],latest=False):
         """
         Method to get all static table
         :param domain: array of ID domain data
         :param all: get all data from whole domain or not
+        :param latest:get last data from webapi
         """
-        if(all):
-            warnings.warn("It will take around 2 hour")
-            domain = self.list_domain()
-            domain = domain['domain_id'].values
-        allStaticTable = []
-        index = 0
-        for row in domain:
-            res = self.__get_statictable(domain=row)
-            res['domain'] = row
-            if(index==0):
-                allStaticTable = res
-            else:
-                allStaticTable = pd.concat([allStaticTable,res])
-            index += 1
+        if(not latest):
+            allStaticTable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31c29bd92039c4ff7b736826a7065028/raw/1eb6e0eca9a90ce4b2f68317fd589faeef6b92d4/allStaticTable.csv',sep="|")
+            if(not all):
+                domain = [int(numeric_string) for numeric_string in domain]
+                allStaticTable.loc[allStaticTable['domain'].isin(domain)]
+        else: 
+            if(all):
+                warnings.warn("It will take around 2 hour")
+                domain = self.list_domain()
+                domain = domain['domain_id'].values
+            allStaticTable = []
+            index = 0
+            for row in domain:
+                res = self.__get_statictable(domain=row)
+                res['domain'] = row
+                if(index==0):
+                    allStaticTable = res
+                else:
+                    allStaticTable = pd.concat([allStaticTable,res])
+                index += 1
         return allStaticTable
     
-    def list_dynamictable(self, all=False, domain=[]):
+    def list_dynamictable(self, all=False, domain=[],latest=False):
         """
         Method to get all dynamic table
         :param domain: array of ID domain data
         :param all: get all data from whole domain or not
+        :param latest:get last data from webapi
         """
-        index = 0
-        allVariable = []
-        if(all):
-            warnings.warn("It will take around 2 hour")
-            domain = self.list_domain()
-            domain = domain['domain_id'].values
-        for row in domain:
-            res = self.__get_variable(domain=row)
-            res['domain'] = row
-            if(index==0):
-                allVariable = res
-            else:
-                allVariable = pd.concat([allVariable,res])
-            index += 1
+        if(not latest):
+            allVariable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4d3efaeea4608c11b1e22b8a51fd0e4d/raw/479d7f098548e95a239178e87da39c7ac1b2aa36/allVariable.csv',sep="|")
+            if(not all):
+                domain = [int(numeric_string) for numeric_string in domain]
+                allVariable.loc[allVariable['domain'].isin(domain)]
+        else: 
+            index = 0
+            allVariable = []
+            if(all):
+                warnings.warn("It will take around 2 hour")
+                domain = self.list_domain()
+                domain = domain['domain_id'].values
+            for row in domain:
+                res = self.__get_variable(domain=row)
+                res['domain'] = row
+                if(index==0):
+                    allVariable = res
+                else:
+                    allVariable = pd.concat([allVariable,res])
+                index += 1
         return allVariable
+    
+    def list_pressrelease(self, all=True, domain=[], month="",year="",latest=False):
+        """
+        Method to get all press release
+        :param domain: array of ID domain data
+        :param all: get all data from whole domain or not
+        :param latest:get last data from webapi
+        """
+        if(not latest):
+            allPressRelease = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4e67a8cf452838e914187e3597bf70c4/raw/509c4a70716d5c3c74973eb973ba99a21e11d761/allPressRelease.csv',sep="|", index_col=[0])
+            if(not all):
+                domain = [int(numeric_string) for numeric_string in domain]
+                allPressRelease.loc[allPressRelease['domain'].isin(domain)]
+                if((month!="") & (year !="")):
+                    allPressRelease = allPressRelease.loc[allPressRelease['rl_date'].str.contains(year+'-'+'{0:0>2}'.format(month))]
+        else: 
+            if(all):
+                warnings.warn("It will take around 4 hour")
+                domain = self.list_domain()
+                domain = domain['domain_id'].values
+            allPressRelease = []
+            index = 0
+            for row in domain:
+                res = self.__get_pressRelease(domain=row,month=month,year=year)
+                res['domain'] = row
+                if(index==0):
+                    allPressRelease = res
+                else:
+                    allPressRelease = pd.concat([allPressRelease,res])
+                index += 1
+        return allPressRelease
+    
+    def list_publication(self, all=True, domain=[], month="",year="",latest=False):
+        """
+        Method to get all publication
+        :param domain: array of ID domain data
+        :param all: get all data from whole domain or not
+        :param latest:get last data from webapi
+        """
+        if(not latest):
+            allPublication = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31b48670d76a199bc88fba3ec3c0672f/raw/72d3c6941f9dc6d0674af685c0ccc5f59f20e9fa/allPublication.csv',sep="|", index_col=[0])
+            if(not all):
+                domain = [int(numeric_string) for numeric_string in domain]
+                allPublication = allPublication.loc[allPublication['domain'].isin(domain)]
+                if((month!="") & (year !="")):
+                    allPublication = allPublication.loc[allPublication['rl_date'].str.contains(year+'-'+'{0:0>2}'.format(month))]
+        else: 
+            if(all):
+                warnings.warn("It will take around 4 hour")
+                domain = self.list_domain()
+                domain = domain['domain_id'].values
+            allPublication = []
+            index = 0
+            for row in domain:
+                res = self.__get_publication(domain=row,month=month,year=year)
+                res['domain'] = row
+                if(index==0):
+                    allPublication = res
+                else:
+                    allPublication = pd.concat([allPublication,res])
+                index += 1
+        return allPublication
 
     def list_domain(self):
         """
@@ -249,7 +440,27 @@ class Client(object):
         res_clean = html.unescape(res['data']['table'])
         df = pd.read_html(res_clean)[0]
         return df
+    
+    def view_(self,domain,table_id,lang='ind'):
+        """
+        Method to view one static table
+        :param domain: Domains that will be displayed variable (see master domain on http://sig.bps.go.id/bridging-kode/index)
+        :param table_id: ID static table
+        :param lang: Language to display data. Default value: ind. Allowed values: "ind", "eng"
+        """
+        res = self.__get_view(domain,'statictable',lang,table_id)
+        res_clean = html.unescape(res['data']['table'])
+        df = pd.read_html(res_clean)[0]
+        return df
 
+    def view_pressrelease(self,domain,id):
+        res = self.__get_view(domain=domain,model='pressrelease',idx=id,lang='ind')
+        return Material(res['data'])
+    
+    def view_publication(self,domain,id):
+        res = self.__get_view(domain=domain,model='publication',idx=id,lang='ind')
+        return Material(res['data'])
+        
     def view_dynamictable(self,domain,var,th=''):
         """
         Method to view one dynamic table
