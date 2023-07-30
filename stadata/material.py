@@ -1,20 +1,28 @@
 import requests
 
 class Material(object):
-    DATA=None
-    CONTENT=None
-    
     def __init__(self, data):
-        self.DATA=data
+        self.DATA = data
+
+        # Download pdf
         response = requests.get(data['pdf'])
+        # get pdf content
         self.CONTENT = response.content
         
-        
     def desc(self):
+        """
+        Show material description
+        """
         return self.DATA
 
-    def download(self,url):
-        pdf = open(url+"/"+self.DATA['title']+".pdf", 'wb')
-        pdf.write(self.CONTENT)
-        pdf.close()
+    def download(self, url):
+        """
+        Download pdf file
+        :param url: url to save pdf file
+        """
+        # open file in the url for writing
+        with open(f"{url}/{self.DATA['title']}.pdf", 'wb') as pdf:
+            # write pdf content to file
+            pdf.write(self.CONTENT)
+            
         print("Download content success")
