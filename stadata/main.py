@@ -321,10 +321,9 @@ class Client(object):
         :param latest:get last data from webapi
         """
         if(not latest):
-            allVariable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4d3efaeea4608c11b1e22b8a51fd0e4d/raw/allVariable.csv',sep="|")
-            if(not all):
-                domain = [int(numeric_string) for numeric_string in domain]
-                allVariable.loc[allVariable['domain'].isin(domain)]
+            allVariable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4d3efaeea4608c11b1e22b8a51fd0e4d/raw/allVariable.csv',sep="|",dtype={'domain': str})
+            if(not all):               
+                allVariable = allVariable.loc[allVariable["domain"].isin(domain)]
         else: 
             index = 0
             allVariable = []
