@@ -15,7 +15,7 @@ class Material(object):
         """
         return self.DATA
 
-    def download(self, url):
+    def download(self, url: str):
         """
         Download pdf file
         :param url: url to save pdf file
