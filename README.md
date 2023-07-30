@@ -126,7 +126,7 @@ Returns:
 - `data`: A list of static table information
 
     ```
-    table_id | title | subj_id | subj | updt_date | size | excel | domain
+    table_id|title|subj_id|subj|updt_date|size|domain
     ```
 
 
@@ -150,7 +150,7 @@ Returns:
 - `data`: A list of static table information
 
     ```
-    var_id | title | sub_id | sub_name | subcsa_id | subcsa_name | def | notes | vertical | unit | graph_id | graph_name | domain
+    var_id|title|sub_id|sub_name|subcsa_id|subcsa_name|notes|vertical|unit|graph_id|graph_name|domain
     ```
 
 #### List Publication
@@ -178,7 +178,7 @@ Returns:
 - `data`: A list of publication
 
     ```
-    pub_id|title|abstract|issn|sch_date|rl_date|updt_date|cover|pdf|size|domain
+    pub_id|title|issn|sch_date|rl_date|updt_date|size|domain
     ```
 
 #### List Press Release
@@ -206,7 +206,7 @@ Returns:
 - `data`: A list of press release
 
     ```
-    brs_id|subj_id|subj|title|abstract|rl_date|updt_date|pdf|size|slide|thumbnail|domain
+    brs_id|subj_id|subj|title|rl_date|updt_date|size|domain
     ```
 
 #### View Static Table

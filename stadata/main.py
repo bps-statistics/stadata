@@ -73,6 +73,10 @@ class Client(object):
             if(res['status']!='OK'):
                 raise Exception(res['message'])
             return res
+    
+    def __format_list(self,list):
+        list['domain'] = list['domain'].map('{0:0>4}'.format)
+        return list
         
     def __get_variable(self,domain='0000'):
         """
@@ -287,7 +291,7 @@ class Client(object):
         :param latest:get last data from webapi
         """
         if(not latest):
-            allStaticTable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31c29bd92039c4ff7b736826a7065028/raw/1eb6e0eca9a90ce4b2f68317fd589faeef6b92d4/allStaticTable.csv',sep="|")
+            allStaticTable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31c29bd92039c4ff7b736826a7065028/raw/allStaticTable.csv',sep="|")
             if(not all):
                 domain = [int(numeric_string) for numeric_string in domain]
                 allStaticTable.loc[allStaticTable['domain'].isin(domain)]
@@ -306,6 +310,7 @@ class Client(object):
                 else:
                     allStaticTable = pd.concat([allStaticTable,res])
                 index += 1
+        allStaticTable = self.__format_list(allStaticTable)
         return allStaticTable
     
     def list_dynamictable(self, all=False, domain=[],latest=False):
@@ -316,7 +321,7 @@ class Client(object):
         :param latest:get last data from webapi
         """
         if(not latest):
-            allVariable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4d3efaeea4608c11b1e22b8a51fd0e4d/raw/479d7f098548e95a239178e87da39c7ac1b2aa36/allVariable.csv',sep="|")
+            allVariable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4d3efaeea4608c11b1e22b8a51fd0e4d/raw/allVariable.csv',sep="|")
             if(not all):
                 domain = [int(numeric_string) for numeric_string in domain]
                 allVariable.loc[allVariable['domain'].isin(domain)]
@@ -335,6 +340,7 @@ class Client(object):
                 else:
                     allVariable = pd.concat([allVariable,res])
                 index += 1
+        allVariable = self.__format_list(allVariable)
         return allVariable
     
     def list_pressrelease(self, all=True, domain=[], month="",year="",latest=False):
@@ -345,7 +351,7 @@ class Client(object):
         :param latest:get last data from webapi
         """
         if(not latest):
-            allPressRelease = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4e67a8cf452838e914187e3597bf70c4/raw/509c4a70716d5c3c74973eb973ba99a21e11d761/allPressRelease.csv',sep="|", index_col=[0])
+            allPressRelease = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4e67a8cf452838e914187e3597bf70c4/raw/allPressRelease.csv',sep="|", index_col=[0])
             if(not all):
                 domain = [int(numeric_string) for numeric_string in domain]
                 allPressRelease.loc[allPressRelease['domain'].isin(domain)]
@@ -366,6 +372,7 @@ class Client(object):
                 else:
                     allPressRelease = pd.concat([allPressRelease,res])
                 index += 1
+        allPressRelease = self.__format_list(allPressRelease)
         return allPressRelease
     
     def list_publication(self, all=True, domain=[], month="",year="",latest=False):
@@ -376,7 +383,7 @@ class Client(object):
         :param latest:get last data from webapi
         """
         if(not latest):
-            allPublication = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31b48670d76a199bc88fba3ec3c0672f/raw/72d3c6941f9dc6d0674af685c0ccc5f59f20e9fa/allPublication.csv',sep="|", index_col=[0])
+            allPublication = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31b48670d76a199bc88fba3ec3c0672f/raw/allPublication.csv',sep="|", index_col=[0])
             if(not all):
                 domain = [int(numeric_string) for numeric_string in domain]
                 allPublication = allPublication.loc[allPublication['domain'].isin(domain)]
@@ -397,6 +404,7 @@ class Client(object):
                 else:
                     allPublication = pd.concat([allPublication,res])
                 index += 1
+        allPublication = self.__format_list(allPublication)
         return allPublication
 
     def list_domain(self):
