@@ -2,20 +2,48 @@ import requests
 import warnings
 import pandas as pd
 from tqdm import tqdm
+from functools import wraps
 import html
 import json
 from .material import Material
 
 BASE_URL = "https://webapi.bps.go.id/v1/"
 
-class Model(object):
+def validate_request(func):
     """
-    Object contains different request for each model
+    Decorator to validate request
+
+    :param func: function to be decorated
+    :return: decorated function
+    """
+
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        if args[0].TOKEN == '':
+            raise Exception('Token is not set')
+        
+        res = func(*args, **kwargs)
+
+        if(res.status_code != 200):
+            warnings.warn("Connection failed")
+        else:
+            res = res.json()
+            # if res is not OK, raise exception
+            if(res['status'] != 'OK'):
+                raise Exception(res['message'])
+            return res
+        
+    return decorated
+
+class RequestModel(object):
+    """
+    Object contains different request for each data model
     """
 
     def __init__(self, **kwargs) -> None:
         self.__dict__ = kwargs
 
+    @validate_request
     def data(self, token: str):
         """
         Get data from webapi
@@ -29,6 +57,7 @@ class Model(object):
                             f"/var/{str(self.var)}" +
                             (f"/th/{str(self.th)}" if self.th != '' else ''))
 
+    @validate_request
     def pressrelease(self, token: str):
         """
         Get press release from webapi
@@ -42,6 +71,7 @@ class Model(object):
                             (f"/month/{str(self.month)}" if self.month != '' else '') +
                             (f"/year/{str(self.year)}" if self.year != '' else ''))
 
+    @validate_request
     def publication(self, token: str):
         """
         Get publication from webapi
@@ -55,6 +85,7 @@ class Model(object):
                             (f"/month/{str(self.month)}" if self.month != '' else '') +
                             (f"/year/{str(self.year)}" if self.year != '' else ''))
 
+    @validate_request
     def other(self, token: str):
         """
         Get static table from webapi
@@ -65,6 +96,18 @@ class Model(object):
                             f"/key/{token}" +
                             f"/keyword/{self.keyword}" +
                             f"/page/{str(self.page)}")
+    
+    @validate_request
+    def view(self, token: str):
+        """
+        Get view from webapi
+        """
+        return requests.get(f"{BASE_URL}api/view/model/{self.model}" +
+                            f"/lang/{self.lang}" +
+                            f"/domain/{self.domain}" +
+                            f"/id/{self.idx}" +
+                            f"/key/{token}")
+
 
 class Client(object):
     """
@@ -109,22 +152,15 @@ class Client(object):
         :param year: Year of publication or press release
         """
 
-        model_request = Model(lang=lang, domain=domain, model=model, keyword=keyword, page=page, var=var, 
-                              turvar=turvar, vervar=vervar, th=th, turth=turth, month=month, year=year)
+        # create model request object based on the parameter
+        request_model = RequestModel(lang=lang, domain=domain, model=model, keyword=keyword, page=page, var=var, 
+                                     turvar=turvar, vervar=vervar, th=th, turth=turth, month=month, year=year)
 
         if model in ['data', 'pressrelease', 'publication']:
-            res = model_request.__getattribute__(model)(self.TOKEN)
-        else:
-            res = model_request.other(self.TOKEN)
-
-        if(res.status_code != 200):
-            warnings.warn("Connection failed")
-        else:
-            res = res.json()
-            # if res is not OK, raise exception
-            if(res['status'] != 'OK'):
-                raise Exception(res['message'])
-            return res
+            # run request based on model name
+            return request_model.__getattribute__(model)(self.TOKEN)
+        
+        return request_model.other(self.TOKEN)
         
     def __get_view(self,domain,model,lang,idx):
         """
@@ -134,20 +170,8 @@ class Client(object):
         :param model: Type data to display
         :idx : ID static table to show
         """
-        res = requests.get(f'{BASE_URL}api/view/model/{model}' +
-                            f'/lang/{lang}' +
-                            f'/domain/{domain}' +
-                            f'/id/{idx}' +
-                            f'/key/{self.TOKEN}/')
-        
-        if(res.status_code != 200):
-            warnings.warn("Connection failed")
-        else:
-            res = res.json()
-            # if res is not OK, raise exception
-            if(res['status'] != 'OK'):
-                raise Exception(res['message'])
-            return res
+        requests_model = RequestModel(lang=lang, domain=domain, model=model, idx=idx)
+        return requests_model.view(self.TOKEN)
     
     def __format_list(self,list):
         list['domain'] = list['domain'].map('{0:0>4}'.format)
