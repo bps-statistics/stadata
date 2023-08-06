@@ -2,6 +2,7 @@
 name = "stadata-semver"
 version = "0.1.1"
 description = "API for get all statistics data from BPS"
+authors = ["Muhammad Luqman <im.imperativa@gmail.com>"]
 urls = {homepage = "https://github.com/bps-statistics/stadata"}
 license = "MIT"
 classifiers = [
