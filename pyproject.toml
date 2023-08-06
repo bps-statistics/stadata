@@ -1,17 +1,9 @@
-[build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "stadata"
+[tool.poetry]
+name = "stadata-semver"
 version = "0.1.1"
 description = "API for get all statistics data from BPS"
 urls = {homepage = "https://github.com/bps-statistics/stadata"}
-requires-python = ">=3.7"
-authors = [
-    {name = "Ignatius Sandyawan", email = "isandyawan@gmail.com"}
-]
-license = {text = "MIT"}
+license = "MIT"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -31,18 +23,17 @@ classifiers = [
 keywords = [
     "bps dataset utility indonesia"
 ]
-dynamic = ["readme", "dependencies"]
+packages = [{include = "stadata_semver"}]
 
-[tool.setuptools]
-packages = ["stadata"]
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.31.0"
+tqdm = "^4.65.0"
+pandas = "^2.0.3"
 
-# Taken from https://github.com/pypa/setuptools/blob/d138ec08efc2dbaebb8752e215e324f38bd807a2/setuptools/tests/config/test_pyprojecttoml.py#L68
-[tool.setuptools.dynamic.readme]
-file = ["README.md"]
-content-type = "text/markdown"
-
-[tool.setuptools.dynamic.dependencies]
-file = ["requirements.txt"]
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.coverage.run]
 branch = true
