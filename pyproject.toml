@@ -24,7 +24,7 @@ classifiers = [
 keywords = [
     "bps dataset utility indonesia"
 ]
-packages = [{include = "stadata_semver"}]
+packages = [{include = "stadata"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
