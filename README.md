@@ -1,10 +1,10 @@
 # STADATA - Simplified Access to [WebAPI](https://webapi.bps.go.id/developer/) BPS
 
-[![pyversion](https://img.shields.io/pypi/pyversions/stadata-semver)](https://img.shields.io/pypi/pyversions/stadata-semver)
-[![pypi](https://img.shields.io/pypi/v/stadata-semver)](https://img.shields.io/pypi/v/stadata-semver)
-[![status](https://img.shields.io/pypi/status/stadata-semver)](https://img.shields.io/pypi/status/stadata-semver)
-[![downloads](https://img.shields.io/pypi/dm/stadata-semver.svg)](https://img.shields.io/pypi/dm/stadata-semver.svg)
-[![sourcerank](https://img.shields.io/librariesio/sourcerank/pypi/stadata-semver.svg)](https://img.shields.io/librariesio/sourcerank/pypi/stadata-semver.svg)
+[![pyversion](https://img.shields.io/pypi/pyversions/stadata)](https://img.shields.io/pypi/pyversions/stadata)
+[![pypi](https://img.shields.io/pypi/v/stadata)](https://img.shields.io/pypi/v/stadata)
+[![status](https://img.shields.io/pypi/status/stadata)](https://img.shields.io/pypi/status/stadata)
+[![downloads](https://img.shields.io/pypi/dm/stadata.svg)](https://img.shields.io/pypi/dm/stadata.svg)
+[![sourcerank](https://img.shields.io/librariesio/sourcerank/pypi/stadata.svg)](https://img.shields.io/librariesio/sourcerank/pypi/stadata.svg)
 [![contributors](https://img.shields.io/github/contributors/bps-statistics/stadata)](https://img.shields.io/github/contributors/bps-statistics/stadata)
 [![license](https://img.shields.io/github/license/bps-statistics/stadata)](https://img.shields.io/github/license/bps-statistics/stadata)
 
