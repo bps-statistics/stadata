@@ -291,7 +291,7 @@ class Client(object):
         :param latest:get last data from webapi
         """
         if(not latest):
-            allStaticTable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31c29bd92039c4ff7b736826a7065028/raw/allStaticTable.csv',sep="|")
+            allStaticTable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31c29bd92039c4ff7b736826a7065028/raw/allStaticTable.csv',sep="|",dtype={'domain': str})
             if(not all):
                 domain = [int(numeric_string) for numeric_string in domain]
                 allStaticTable.loc[allStaticTable['domain'].isin(domain)]
@@ -350,7 +350,7 @@ class Client(object):
         :param latest:get last data from webapi
         """
         if(not latest):
-            allPressRelease = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4e67a8cf452838e914187e3597bf70c4/raw/allPressRelease.csv',sep="|", index_col=[0])
+            allPressRelease = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4e67a8cf452838e914187e3597bf70c4/raw/allPressRelease.csv',sep="|", index_col=[0],dtype={'domain': str})
             if(not all):
                 domain = [int(numeric_string) for numeric_string in domain]
                 allPressRelease.loc[allPressRelease['domain'].isin(domain)]
@@ -382,7 +382,7 @@ class Client(object):
         :param latest:get last data from webapi
         """
         if(not latest):
-            allPublication = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31b48670d76a199bc88fba3ec3c0672f/raw/allPublication.csv',sep="|", index_col=[0])
+            allPublication = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31b48670d76a199bc88fba3ec3c0672f/raw/allPublication.csv',sep="|", index_col=[0],dtype={'domain': str})
             if(not all):
                 domain = [int(numeric_string) for numeric_string in domain]
                 allPublication = allPublication.loc[allPublication['domain'].isin(domain)]
