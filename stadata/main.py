@@ -2,24 +2,140 @@ import requests
 import warnings
 import pandas as pd
 from tqdm import tqdm
+from functools import wraps
 import html
+import json
 from .material import Material
 
 BASE_URL = "https://webapi.bps.go.id/v1/"
+
+def validate_request(func):
+    """
+    Decorator to validate request
+
+    :param func: function to be decorated
+    :return: decorated function
+    """
+
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        if args[0].TOKEN == '':
+            raise Exception('Token is not set')
+        
+        res = func(*args, **kwargs)
+
+        if(res.status_code != 200):
+            warnings.warn("Connection failed")
+        else:
+            res = res.json()
+            # if res is not OK, raise exception
+            if(res['status'] != 'OK'):
+                raise Exception(res['message'])
+            return res
+        
+    return decorated
+
+class RequestModel(object):
+    """
+    Object contains different request for each data model
+    """
+
+    def __init__(self, **kwargs) -> None:
+        self.__dict__ = kwargs
+
+    @validate_request
+    def data(self, token: str):
+        """
+        Get data from webapi
+        """
+        return requests.get(f"{BASE_URL}api/list/model/{self.model}" +
+                            f"/perpage/100000/lang/{self.lang}" +
+                            f"/domain/{self.domain}" +
+                            f"/key/{token}" +
+                            f"/keyword/{self.keyword}" +
+                            f"/page/{str(self.page)}" +
+                            f"/var/{str(self.var)}" +
+                            (f"/th/{str(self.th)}" if self.th != '' else ''))
+
+    @validate_request
+    def pressrelease(self, token: str):
+        """
+        Get press release from webapi
+        """
+        return requests.get(f"{BASE_URL}api/list/model/{self.model}" +
+                            f"/perpage/100000/lang/{self.lang}" +
+                            f"/domain/{self.domain}" +
+                            f"/key/{token}" +
+                            f"/keyword/{self.keyword}" +
+                            f"/page/{str(self.page)}" +
+                            (f"/month/{str(self.month)}" if self.month != '' else '') +
+                            (f"/year/{str(self.year)}" if self.year != '' else ''))
+
+    @validate_request
+    def publication(self, token: str):
+        """
+        Get publication from webapi
+        """
+        return requests.get(f"{BASE_URL}api/list/model/{self.model}" +
+                            f"/perpage/100000/lang/{self.lang}" +
+                            f"/domain/{self.domain}" +
+                            f"/key/{token}" +
+                            f"/keyword/{self.keyword}" +
+                            f"/page/{str(self.page)}" +
+                            (f"/month/{str(self.month)}" if self.month != '' else '') +
+                            (f"/year/{str(self.year)}" if self.year != '' else ''))
+
+    @validate_request
+    def other(self, token: str):
+        """
+        Get static table from webapi
+        """
+        return requests.get(f"{BASE_URL}api/list/model/{self.model}" +
+                            f"/perpage/100000/lang/{self.lang}" +
+                            f"/domain/{self.domain}" +
+                            f"/key/{token}" +
+                            f"/keyword/{self.keyword}" +
+                            f"/page/{str(self.page)}")
+    
+    @validate_request
+    def view(self, token: str):
+        """
+        Get view from webapi
+        """
+        return requests.get(f"{BASE_URL}api/view/model/{self.model}" +
+                            f"/lang/{self.lang}" +
+                            f"/domain/{self.domain}" +
+                            f"/id/{self.idx}" +
+                            f"/key/{token}")
+
 
 class Client(object):
     """
     Object to connect with webapi
     """
-    TOKEN = ""
-    def __init__(self, token):
+
+    def __init__(self, token: str):
         """
         Initialize client object
         :param token: token from webapi website
         """
         self.TOKEN = token
     
-    def __get_list(self,lang = 'ind',domain='0000',model='statictable',keyword='',page=1,var='',turvar='',vervar='',th='',turth='',month='',year=''):
+    def __get_list(
+            self,
+            lang:str = 'ind',
+            domain:str = '0000',
+            model:str = 'statictable',
+            keyword:str = '',
+            page:int = 1,
+            var:str = '',
+            turvar:str = '',
+            vervar:str = '',
+            th:str = '',
+            turth:str = '',
+            month:str = '',
+            year:str = ''
+        ):
         """
         Method to get list data based on model
         :param lang: Language to display data. Default value: ind. Allowed values: "ind", "eng"
@@ -35,28 +151,17 @@ class Client(object):
         :param month: Month of publication or press release in int
         :param year: Year of publication or press release
         """
-        if(model=='data'):
-            if(th != ''):
-                url_th = '/th/'f'{th}'
-            else:
-                url_th = ''
-            res = requests.get(f'{BASE_URL}api/list/model/'f'{model}/perpage/100000/lang/'f'{lang}/domain/'f'{domain}/key/'f'{self.TOKEN}/keyword/'f'{keyword}/page/'f'{str(page)}/var/'f'{str(var)}'f'{url_th}')
-        elif((model=='pressrelease')|(model=='publication')):
-            res = requests.get('https://webapi.bps.go.id/v1/api/list/model/'+model+'/perpage/100000/lang/'+lang+'/domain/'+domain+'/key/'+key+'/keyword/'+keyword+'/page/'+str(page)+
-                            (('/month/'+str(month)) if month != '' else '')+
-                            (('/year/'+str(year)) if year != '' else ''))
-        else:
-            res = requests.get(f'{BASE_URL}api/list/model/'f'{model}/perpage/100000/lang/'f'{lang}/domain/'f'{domain}/key/'f'{self.TOKEN}/keyword/'f'{keyword}/page/'f'{str(page)}')
-        if(res.status_code!=200):
-            warnings.warn("Connection failed")
-        else:
-            res = res.json()
-            if(res['status']!='OK'):
-                raise Exception(res['message'])
-            return res
-        
-        
 
+        # create model request object based on the parameter
+        request_model = RequestModel(lang=lang, domain=domain, model=model, keyword=keyword, page=page, var=var, 
+                                     turvar=turvar, vervar=vervar, th=th, turth=turth, month=month, year=year)
+
+        if model in ['data', 'pressrelease', 'publication']:
+            # run request based on model name
+            return request_model.__getattribute__(model)(self.TOKEN)
+        
+        return request_model.other(self.TOKEN)
+        
     def __get_view(self,domain,model,lang,idx):
         """
         Based Method view statictable
@@ -65,14 +170,8 @@ class Client(object):
         :param model: Type data to display
         :idx : ID static table to show
         """
-        res = requests.get(f'{BASE_URL}api/view/model/'f'{model}/lang/'f'{lang}/domain/'f'{domain}/id/'f'{idx}/key/'+self.TOKEN+'/')
-        if(res.status_code!=200):
-            warnings.warn("Connection failed")
-        else:
-            res = res.json()
-            if(res['status']!='OK'):
-                raise Exception(res['message'])
-            return res
+        requests_model = RequestModel(lang=lang, domain=domain, model=model, idx=idx)
+        return requests_model.view(self.TOKEN)
     
     def __format_list(self,list):
         list['domain'] = list['domain'].map('{0:0>4}'.format)
