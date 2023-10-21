@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "stadata"
-version = "0.1.1"
+version = "1.0.0"
 description = "API for get all statistics data from BPS"
 authors = ["Ignatius Sandyawan <isandyawan@gmail.com>"]
 urls = {homepage = "https://github.com/bps-statistics/stadata"}
@@ -33,7 +33,7 @@ tqdm = "^4.65.0"
 pandas = "^2.0.3"
 pytest= "^27.4.2"
 pytest-cov="^24.1.0"
-lxml="^24.9.3"
+lxml="^4.9.3"
 
 [build-system]
 requires = ["poetry-core"]
