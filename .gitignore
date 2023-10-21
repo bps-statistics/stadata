@@ -4,6 +4,7 @@ stadata.egg-info/
 .DS_Store
 stadata/__pycache__
 tests/__pycache__
+.pytest_cache/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
