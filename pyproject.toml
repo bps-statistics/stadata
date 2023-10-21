@@ -52,4 +52,6 @@ precision = 2
 show_missing = true
 
 [tool.pytest.ini_options]
-addopts = "--cov pytrends/"
+pythonpath = [
+  "."
+]

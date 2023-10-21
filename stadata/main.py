@@ -4,6 +4,9 @@ import pandas as pd
 from tqdm import tqdm
 import html
 from .material import Material
+from io import StringIO  
+import io
+
 
 BASE_URL = "https://webapi.bps.go.id/v1/"
 
@@ -283,18 +286,21 @@ class Client(object):
                     })], axis=0, ignore_index=True)
         return df
     
-    def list_statictable(self, all=False, domain=[],latest=False):
+    def list_statictable(self, all=True, domain=[],latest=False):
         """
         Method to get all static table
         :param domain: array of ID domain data
         :param all: get all data from whole domain or not
         :param latest:get last data from webapi
         """
+        if(len(domain)>0):
+            all=False
         if(not latest):
-            allStaticTable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31c29bd92039c4ff7b736826a7065028/raw/allStaticTable.csv',sep="|",dtype={'domain': str})
+            url='https://gist.githubusercontent.com/isandyawan/31c29bd92039c4ff7b736826a7065028/raw/allStaticTable.csv'
+            s=requests.get(url).content
+            allStaticTable = pd.read_csv(io.StringIO(s.decode('utf-8')),sep="|",dtype={'domain': str})
             if(not all):
-                domain = [int(numeric_string) for numeric_string in domain]
-                allStaticTable.loc[allStaticTable['domain'].isin(domain)]
+                allStaticTable = allStaticTable.loc[allStaticTable['domain'].isin(domain)]
         else: 
             if(all):
                 warnings.warn("It will take around 2 hour")
@@ -313,15 +319,19 @@ class Client(object):
         allStaticTable = self.__format_list(allStaticTable)
         return allStaticTable
     
-    def list_dynamictable(self, all=False, domain=[],latest=False):
+    def list_dynamictable(self, all=True, domain=[],latest=False):
         """
         Method to get all dynamic table
         :param domain: array of ID domain data
         :param all: get all data from whole domain or not
         :param latest:get last data from webapi
         """
+        if(len(domain)>0):
+            all=False
         if(not latest):
-            allVariable = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4d3efaeea4608c11b1e22b8a51fd0e4d/raw/allVariable.csv',sep="|",dtype={'domain': str})
+            url='https://gist.githubusercontent.com/isandyawan/4d3efaeea4608c11b1e22b8a51fd0e4d/raw/allVariable.csv'
+            s=requests.get(url).content
+            allVariable = pd.read_csv(io.StringIO(s.decode('utf-8')),sep="|",dtype={'domain': str})
             if(not all):               
                 allVariable = allVariable.loc[allVariable["domain"].isin(domain)]
         else: 
@@ -349,11 +359,14 @@ class Client(object):
         :param all: get all data from whole domain or not
         :param latest:get last data from webapi
         """
+        if(len(domain)>0):
+            all=False
         if(not latest):
-            allPressRelease = pd.read_csv('https://gist.githubusercontent.com/isandyawan/4e67a8cf452838e914187e3597bf70c4/raw/allPressRelease.csv',sep="|", index_col=[0],dtype={'domain': str})
+            url='https://gist.githubusercontent.com/isandyawan/4e67a8cf452838e914187e3597bf70c4/raw/allPressRelease.csv'
+            s=requests.get(url).content
+            allPressRelease = pd.read_csv(io.StringIO(s.decode('utf-8')),sep="|", index_col=[0],dtype={'domain': str})
             if(not all):
-                domain = [int(numeric_string) for numeric_string in domain]
-                allPressRelease.loc[allPressRelease['domain'].isin(domain)]
+                allPressRelease = allPressRelease.loc[allPressRelease['domain'].isin(domain)]
                 if((month!="") & (year !="")):
                     allPressRelease = allPressRelease.loc[allPressRelease['rl_date'].str.contains(year+'-'+'{0:0>2}'.format(month))]
         else: 
@@ -381,10 +394,13 @@ class Client(object):
         :param all: get all data from whole domain or not
         :param latest:get last data from webapi
         """
+        if(len(domain)>0):
+            all=False
         if(not latest):
-            allPublication = pd.read_csv('https://gist.githubusercontent.com/isandyawan/31b48670d76a199bc88fba3ec3c0672f/raw/allPublication.csv',sep="|", index_col=[0],dtype={'domain': str})
+            url='https://gist.githubusercontent.com/isandyawan/31b48670d76a199bc88fba3ec3c0672f/raw/allPublication.csv'
+            s=requests.get(url).content
+            allPublication = pd.read_csv(io.StringIO(s.decode('utf-8')),sep="|", index_col=[0],dtype={'domain': str})
             if(not all):
-                domain = [int(numeric_string) for numeric_string in domain]
                 allPublication = allPublication.loc[allPublication['domain'].isin(domain)]
                 if((month!="") & (year !="")):
                     allPublication = allPublication.loc[allPublication['rl_date'].str.contains(year+'-'+'{0:0>2}'.format(month))]
@@ -444,19 +460,7 @@ class Client(object):
         :param lang: Language to display data. Default value: ind. Allowed values: "ind", "eng"
         """
         res = self.__get_view(domain,'statictable',lang,table_id)
-        res_clean = html.unescape(res['data']['table'])
-        df = pd.read_html(res_clean)[0]
-        return df
-    
-    def view_(self,domain,table_id,lang='ind'):
-        """
-        Method to view one static table
-        :param domain: Domains that will be displayed variable (see master domain on http://sig.bps.go.id/bridging-kode/index)
-        :param table_id: ID static table
-        :param lang: Language to display data. Default value: ind. Allowed values: "ind", "eng"
-        """
-        res = self.__get_view(domain,'statictable',lang,table_id)
-        res_clean = html.unescape(res['data']['table'])
+        res_clean = StringIO(html.unescape(res['data']['table']))
         df = pd.read_html(res_clean)[0]
         return df
 
@@ -475,7 +479,7 @@ class Client(object):
         :param th: Period data ID selected to display data
         """
         res = self.__get_list(lang = 'ind',domain=domain,model='data',page=1,var=var,th=th)
-        if(res['data']==''):
+        if(res['status']!='OK'):
             return None
         res['datacontent'].values()
         datacontent = pd.DataFrame({
