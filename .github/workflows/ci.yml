@@ -36,10 +36,8 @@ jobs:
         run: poetry install
       - name: Run the automated tests
         run: poetry run pytest --token ${{ secrets.WEBAPI_TOKEN }} -v
-
+    
       - name: Semantic Release
-        uses: bjoluc/semantic-release-config-poetry@v2
-        with:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-          RELEASE_BRANCH: main
+        run: |
+              poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+              poetry publish --build
