@@ -31,8 +31,9 @@ python = "^3.8"
 requests = "^2.31.0"
 tqdm = "^4.65.0"
 pandas = "^2.0.3"
-pytest= "^27.4.2"
-pytest-cov="^24.1.0"
+pytest = "^7.4.2"
+pytest-cov = "^4.1.0"
+lxml = "^4.9.3"
 
 [build-system]
 requires = ["poetry-core"]
