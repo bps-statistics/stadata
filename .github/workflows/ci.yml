@@ -35,7 +35,7 @@ jobs:
       - name: Install the project dependencies
         run: poetry install
       - name: Run the automated tests
-        run: poetry run pytest -v
+        run: poetry run pytest --token ${{ secrets.WEBAPI_TOKEN }} -v
 
       - name: Semantic Release
         uses: bjoluc/semantic-release-config-poetry@v2
