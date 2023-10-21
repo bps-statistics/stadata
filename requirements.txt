@@ -1,6 +1,0 @@
-requests>=2.0
-pandas>=0.25
-tqdm
-pytest
-pytest-cov
-lxml
