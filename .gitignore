@@ -3,3 +3,6 @@ stadata.egg-infostadata.egg-info
 stadata.egg-info/
 .DS_Store
 stadata/__pycache__
+*.pyc
+.pytest_cache/v/cache/lastfailed
+.pytest_cache/v/cache/stepwise
