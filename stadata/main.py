@@ -59,9 +59,15 @@ class Client(object):
         """
         if model == "data":
             if th != "":
-                url_th = "/th/" f"{th}"
+                url_th = f"/th/{th}"
             else:
                 url_th = ""
+                
+            if turth != "":
+                url_turth = f"/turth/{turth}"
+            else:
+                url_turth = ""        
+        
             res = requests.get(
                 f"{BASE_URL}api/list/model/"
                 f"{model}/perpage/100000/lang/"
@@ -72,6 +78,7 @@ class Client(object):
                 f"{str(page)}/var/"
                 f"{str(var)}"
                 f"{url_th}"
+                f"{url_turth}"
             )
         elif (model == "pressrelease") | (model == "publication"):
             res = requests.get(
@@ -208,7 +215,7 @@ class Client(object):
             domain=domain, model="pressrelease", keyword=keyword, year=year, month=month
         )
         if res["data"] == "":
-            print(res)
+            # print(res)
             return df
         for item in res["data"][1]:
             df = pd.concat(
@@ -633,25 +640,38 @@ class Client(object):
         )
 
         datacontent = datacontent.sort_values("key", ignore_index=True)
-
+        
         vervar = pd.DataFrame(
             list(map(lambda x: [x["val"], x["label"]], res["vervar"])),
             columns=["id_var", "variable"],
         )
+        
         vervar = vervar.sort_values("id_var", ignore_index=True)
 
         turvar = pd.DataFrame(
             list(map(lambda x: [x["val"], x["label"]], res["turvar"])),
             columns=["id_tur_var", "turunan variable"],
         )
+        
         turvar = turvar.sort_values("id_tur_var", ignore_index=True)
 
         result = vervar.merge(turvar, how="cross")
+        
+        turtahun = None
+        
+        if("turtahun" in res):
+            turtahun = pd.DataFrame(
+                list(map(lambda x: [x["val"], x["label"]], res["turtahun"])),
+                columns=["id_tur_th", "turunan tahun"],
+            )
+            turtahun = turtahun.sort_values("id_tur_th", ignore_index=True)
+            result = result.merge(turtahun, how="cross")
 
         tahun = pd.DataFrame(
             list(map(lambda x: [x["val"], x["label"]], res["tahun"])),
             columns=["val", "label"],
         )
+       
         tahun = tahun.sort_values("val", ignore_index=True)
 
         for index, row in tahun.iterrows():
@@ -660,10 +680,11 @@ class Client(object):
                 cell = datacontent.loc[
                     datacontent["key"].str.match(
                         "^"
-                        + str(result.loc[index_result, "id_var"])
-                        + str(var)
-                        + str(result.loc[index_result, "id_tur_var"])
-                        + str(row["val"])
+                        + str(result.loc[index_result, "id_var"])  #ID vertical variable
+                        + str(var) #ID variable
+                        + str(result.loc[index_result, "id_tur_var"]) #ID turunan varibale
+                        + str(row["val"]) #ID tahun
+                        + (str(result.loc[index_result, "id_tur_th"]) if (type(turtahun)!= None) else '')
                     ),
                     "value",
                 ]
